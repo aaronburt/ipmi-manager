@@ -20,6 +20,12 @@ statusRouter.get('/power', async(req: Request, res: Response) => {
     return res.status(isOnline ? 200 : 503).json({ online: isOnline ? true : false });
 });
 
+statusRouter.get('/sensor', async(req: Request, res: Response) => {
+    const { hostname, username, password } = req.body;
+    const sensorResponse = await new IpmiController(hostname, username, password).getSensorRecord();
+    return res.status(200).json(sensorResponse)
+});
+
 statusRouter.get('/chassis', async(req: Request, res: Response) => {
     const { hostname, username, password } = req.body;
     const chassisStatusResponse = await new IpmiController(hostname, username, password).getChassisStatus();

@@ -46,6 +46,36 @@ class IpmiController {
         }
     }
 
+    handleSensorRecord(input: string){
+        const lines = input.split('\n');
+        const data = [];
+
+        for(const line of lines){
+            let [key, value, spare] = line.split('|');
+
+            if(key !== undefined && value !== undefined){
+                let keyTrim = key.replaceAll(' ', '');
+                let valueTrim = value.replaceAll(' ', '');
+                data.push({ [keyTrim]: valueTrim })
+            }
+        }
+
+        return data;
+    }
+    
+
+    async getSensorRecord(){
+        try {
+            const queryRecordResponse: string | null = await this.execCommand(`${this.ipmiStarterSyntax} sdr`);
+            if(queryRecordResponse === null) return null;
+            return this.handleSensorRecord(queryRecordResponse)
+        } catch(err: any){
+            this.logger(err);
+            return null;
+        }
+    }
+
+
     async getChassisStatus(){
         try {
 
@@ -57,7 +87,11 @@ class IpmiController {
             }
 
             const chassisStatusArray: string[] = chassisStatus.trim().split('\n');
-            return chassisStatusArray.map(item => { return item.split(':') });
+            return chassisStatusArray.map(item => { 
+                const [key, value] = item.split(':') 
+                return { [key.replaceAll(' ', '')]: value.replaceAll(' ', '') }
+            
+            });
 
         } catch(err: any){
             this.logger(err)
